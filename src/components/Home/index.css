@@ -1,0 +1,12 @@
+.home-bg {
+  background-color: #202020;
+  color: white;
+}
+
+.find-jobs-btn {
+  background-color: #6366f1;
+  border-radius: 10px;
+  width: 100px;
+  padding: 4px;
+  border-width: 0px;
+}

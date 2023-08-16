@@ -1,0 +1,15 @@
+.navbar {
+  background-color: #64748b;
+  color: white;
+  font-family: 'Roboto';
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.navbar-list {
+  list-style-type: none;
+}
+
+.navbar-list-item {
+  margin: 10px;
+}
