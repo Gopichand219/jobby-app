@@ -1,9 +1,8 @@
 import {Component} from 'react'
 import Cookies from 'js-cookie'
 import {BsSearch} from 'react-icons/bs'
-import {Loader} from 'react-loader-spinner'
+import Loader from 'react-loader-spinner'
 import JobItem from '../JobItem'
-import JobItemDetails from '../JobItemDetails'
 
 import './index.css'
 
@@ -56,7 +55,7 @@ class JobsDetails extends Component {
   state = {
     searchInput: '',
     employment: [],
-    salary: '',
+    salary: salaryRangesList[0].salaryRangeId,
     jobsList: [],
     jobApiStatus: apiStatusConstants.initial,
     profileApiStatus: apiStatusConstants.initial,
@@ -156,62 +155,6 @@ class JobsDetails extends Component {
     this.setState({searchInput: event.target.value})
   }
 
-  retrieveJob = async id => {
-    const jwtToken = Cookies.get('jwt_token')
-    const jobItemApiUrl = `https://apis.ccbp.in/jobs/${id}`
-    const options = {
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-      method: 'GET',
-    }
-    const response = await fetch(jobItemApiUrl, options)
-    if (response.ok) {
-      const fetchedData = await response.json()
-      const jobDetails = fetchedData.job_details
-      const skills = jobDetails.skills.map(eachSkill => ({
-        imageUrl: eachSkill.image_url,
-        name: eachSkill.name,
-      }))
-      const updatedJobDetails = {
-        companyWebsiteUrl: jobDetails.company_website_url,
-        companyLogoUrl: jobDetails.company_logo_url,
-        employmentType: jobDetails.employment_type,
-        id: jobDetails.id,
-        jobDescription: jobDetails.job_description,
-        location: jobDetails.location,
-        packagePerAnnum: jobDetails.package_per_annum,
-        rating: jobDetails.rating,
-        title: jobDetails.title,
-        skills,
-        lifeAtCompany: {
-          description: jobDetails.life_at_company.description,
-          imageUrl: jobDetails.life_at_company.image_url,
-        },
-      }
-      const similarJobs = fetchedData.similar_jobs
-      const updatedSimilarJobs = similarJobs.map(eachJob => ({
-        companyLogoUrl: eachJob.company_logo_url,
-        employmentType: eachJob.employment_type,
-        id: eachJob.id,
-        jobDescription: eachJob.job_description,
-        location: eachJob.location,
-        packagePerAnnum: eachJob.package_per_annum,
-        rating: eachJob.rating,
-        title: eachJob.title,
-      }))
-      return (
-        <JobItemDetails
-          jobDetails={updatedJobDetails}
-          similarJobs={updatedSimilarJobs}
-          id={id}
-          retrieveJob={this.retrieveJob}
-        />
-      )
-    }
-    return console.log(1)
-  }
-
   renderAllJobsView = () => {
     const {jobApiStatus} = this.state
 
@@ -263,10 +206,14 @@ class JobsDetails extends Component {
   )
 
   renderJobsSuccessView = () => {
-    const {jobsList} = this.state
+    const {jobsList, searchInput} = this.state
+    const updatedList = jobsList.filter(each =>
+      each.title.toLowerCase().includes(searchInput.toLowerCase()),
+    )
+    console.log(updatedList)
     return (
       <ul>
-        {jobsList.map(eachJob => (
+        {updatedList.map(eachJob => (
           <JobItem
             jobItemDetails={eachJob}
             key={eachJob.id}

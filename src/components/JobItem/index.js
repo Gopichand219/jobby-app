@@ -1,5 +1,7 @@
+import {Link} from 'react-router-dom'
+
 const JobItem = props => {
-  const {jobItemDetails, retrieveJob} = props
+  const {jobItemDetails} = props
   const {
     id,
     companyLogoUrl,
@@ -11,12 +13,9 @@ const JobItem = props => {
     packagePerAnnum,
   } = jobItemDetails
 
-  const onClickButton = () => {
-    retrieveJob(id)
-  }
   return (
     <li>
-      <button type="button" onClick={onClickButton}>
+      <Link to={`/jobs/${id}`}>
         <>
           <img src={companyLogoUrl} alt="logo" />
           <>
@@ -30,7 +29,7 @@ const JobItem = props => {
         <hr />
         <h1>Description</h1>
         <p>{jobDescription}</p>
-      </button>
+      </Link>
     </li>
   )
 }

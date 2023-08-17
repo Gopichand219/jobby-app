@@ -1,72 +1,74 @@
+import Cookies from 'js-cookie'
 import Header from '../Header'
 
+import JobItemDetailsPage from '../JobItemDetailsPage'
+
 const JobItemDetails = props => {
-  const {jobDetails, similarJobs} = props
-  const {
-    companyLogoUrl,
-    employmentType,
-    title,
-    location,
-    rating,
-    jobDescription,
-    packagePerAnnum,
-    skills,
-    lifeAtCompany,
-  } = jobDetails
+  const {match} = props
+  const {params} = match
+  const {id} = params
+
+  const view = async () => {
+    const jwtToken = Cookies.get('jwt_token')
+    const jobItemApiUrl = `https://apis.ccbp.in/jobs/${id}`
+    const options = {
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+      },
+      method: 'GET',
+    }
+    const response = await fetch(jobItemApiUrl, options)
+    if (response.ok) {
+      const fetchedData = await response.json()
+      const jobDetails = fetchedData.job_details
+      const updatedSkills = jobDetails.skills.map(eachSkill => ({
+        imageUrl: eachSkill.image_url,
+        name: eachSkill.name,
+      }))
+      const updatedJobDetails = {
+        companyWebsiteUrl: jobDetails.company_website_url,
+        companyLogoUrl: jobDetails.company_logo_url,
+        employmentType: jobDetails.employment_type,
+        id: jobDetails.id,
+        jobDescription: jobDetails.job_description,
+        location: jobDetails.location,
+        packagePerAnnum: jobDetails.package_per_annum,
+        rating: jobDetails.rating,
+        title: jobDetails.title,
+        skills: updatedSkills,
+        lifeAtCompany: {
+          description: jobDetails.life_at_company.description,
+          imageUrl: jobDetails.life_at_company.image_url,
+        },
+      }
+      const similarJobsData = fetchedData.similar_jobs
+      const similarJobs = similarJobsData.map(eachJob => ({
+        companyLogoUrl: eachJob.company_logo_url,
+        employmentType: eachJob.employment_type,
+        id: eachJob.id,
+        jobDescription: eachJob.job_description,
+        location: eachJob.location,
+        packagePerAnnum: eachJob.package_per_annum,
+        rating: eachJob.rating,
+        title: eachJob.title,
+      }))
+      console.log(updatedJobDetails)
+      const {title} = updatedJobDetails
+      console.log(title)
+      return (
+        <JobItemDetailsPage
+          updatedJobDetails={updatedJobDetails}
+          similarJobs={similarJobs}
+        />
+      )
+    }
+    return 0
+  }
+
   return (
     <>
       <Header />
-      <div className="bg">
-        <div>
-          <>
-            <img src={companyLogoUrl} alt="logo" />
-            <>
-              <h1>{title}</h1>
-              <p>{rating}</p>
-            </>
-          </>
-          <p>{location}</p>
-          <p>{employmentType}</p>
-          <p>{packagePerAnnum}</p>
-          <hr />
-          <h1>Description</h1>
-          <p>{jobDescription}</p>
-          <h1>Skills</h1>
-          <ul>
-            {skills.map(eachSkill => (
-              <li>
-                <img src={eachSkill.imageUrl} alt="skill" />
-                <p>{eachSkill.name}</p>
-              </li>
-            ))}
-          </ul>
-          <h1>Life At Company</h1>
-          <>
-            <p>{lifeAtCompany.description}</p>
-            <img src={lifeAtCompany.imageUrl} alt="company life" />
-          </>
-        </div>
-        <h1>Similar Jobs</h1>
-        <ul>
-          {similarJobs.map(eachJob => (
-            <li>
-              <>
-                <img src={eachJob.companyLogoUrl} alt="logo" />
-                <>
-                  <h1>{eachJob.title}</h1>
-                  <p>{eachJob.rating}</p>
-                </>
-              </>
-              <p>{eachJob.location}</p>
-              <p>{eachJob.employmentType}</p>
-              <p>{eachJob.packagePerAnnum}</p>
-              <hr />
-              <h1>Description</h1>
-              <p>{eachJob.jobDescription}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {view()}
     </>
   )
 }
