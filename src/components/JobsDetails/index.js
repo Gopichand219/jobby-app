@@ -55,7 +55,7 @@ class JobsDetails extends Component {
   state = {
     searchInput: '',
     employment: [],
-    salary: salaryRangesList[0].salaryRangeId,
+    salary: '',
     jobsList: [],
     jobApiStatus: apiStatusConstants.initial,
     profileApiStatus: apiStatusConstants.initial,
@@ -102,9 +102,11 @@ class JobsDetails extends Component {
   }
 
   getJobs = async () => {
+    this.setState({jobApiStatus: apiStatusConstants.inProgress})
     const jwtToken = Cookies.get('jwt_token')
     const {salary, employment, searchInput} = this.state
     const employmentTypesJoined = employment.join(',')
+    console.log(employmentTypesJoined)
     const jobsApiUrl = `https://apis.ccbp.in/jobs?employment_type=${employmentTypesJoined}&minimum_package=${salary}&search=${searchInput}`
     const options = {
       headers: {
@@ -114,6 +116,7 @@ class JobsDetails extends Component {
     }
     const response = await fetch(jobsApiUrl, options)
     const fetchedData = await response.json()
+    console.log(fetchedData)
     if (response.ok) {
       const updatedData = fetchedData.jobs.map(eachJob => ({
         companyLogoUrl: eachJob.company_logo_url,
@@ -134,30 +137,32 @@ class JobsDetails extends Component {
     }
   }
 
-  onChangeCheckbox = event => {
+  onChangeCheckbox = async event => {
     const {value, checked} = event.target
     const {employment} = this.state
     if (checked) {
-      this.setState(prevState => ({
-        employment: [...prevState.employment, value],
-      }))
+      this.setState(
+        prevState => ({
+          employment: [...prevState.employment, value],
+        }),
+        this.getJobs,
+      )
     } else {
       const updatedData = employment.filter(each => each !== value)
-      this.setState({employment: updatedData})
+      this.setState({employment: updatedData}, this.getJobs)
     }
   }
 
   onChangeRadio = event => {
-    this.setState({salary: event.target.value})
+    this.setState({salary: event.target.value}, this.getJobs)
   }
 
   onChangeSearchInput = event => {
-    this.setState({searchInput: event.target.value})
+    this.setState({searchInput: event.target.value}, this.getJobs)
   }
 
   renderAllJobsView = () => {
     const {jobApiStatus} = this.state
-
     switch (jobApiStatus) {
       case apiStatusConstants.success:
         return this.renderJobsSuccessView()
@@ -194,8 +199,8 @@ class JobsDetails extends Component {
   renderJobFailureView = () => (
     <>
       <img
-        src="https://assets.ccbp.in/frontend/react-js/no-jobs-img.png"
-        alt="no jobs"
+        src="https://assets.ccbp.in/frontend/react-js/failure-img.png"
+        alt="failure view"
       />
       <h1>Oops Something Went Wrong</h1>
       <p>We cannot seem to find the page you are looking for</p>
@@ -206,14 +211,11 @@ class JobsDetails extends Component {
   )
 
   renderJobsSuccessView = () => {
-    const {jobsList, searchInput} = this.state
-    const updatedList = jobsList.filter(each =>
-      each.title.toLowerCase().includes(searchInput.toLowerCase()),
-    )
-    console.log(updatedList)
-    return (
+    const {jobsList} = this.state
+
+    return jobsList.length !== 0 ? (
       <ul>
-        {updatedList.map(eachJob => (
+        {jobsList.map(eachJob => (
           <JobItem
             jobItemDetails={eachJob}
             key={eachJob.id}
@@ -221,6 +223,15 @@ class JobsDetails extends Component {
           />
         ))}
       </ul>
+    ) : (
+      <>
+        <img
+          src="https://assets.ccbp.in/frontend/react-js/no-jobs-img.png"
+          alt="no jobs"
+        />
+        <h1>No Jobs Found</h1>
+        <p>We could not find any jobs. Try other filters</p>
+      </>
     )
   }
 
@@ -255,7 +266,7 @@ class JobsDetails extends Component {
                 <input
                   type="checkbox"
                   id={eachEmployment.employmentTypeId}
-                  value={eachEmployment.label}
+                  value={eachEmployment.employmentTypeId}
                   onChange={this.onChangeCheckbox}
                 />
                 <label htmlFor={eachEmployment.employmentTypeId}>
@@ -273,7 +284,7 @@ class JobsDetails extends Component {
                   type="radio"
                   name="salary"
                   id={eachSalary.salaryRangeId}
-                  value={eachSalary.label}
+                  value={eachSalary.salaryRangeId}
                   onChange={this.onChangeRadio}
                 />
                 <label htmlFor={eachSalary.salaryRangeId}>

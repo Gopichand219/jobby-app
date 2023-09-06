@@ -17,7 +17,7 @@ const JobItem = props => {
     <li>
       <Link to={`/jobs/${id}`}>
         <>
-          <img src={companyLogoUrl} alt="logo" />
+          <img src={companyLogoUrl} alt="company logo" />
           <>
             <h1>{title}</h1>
             <p>{rating}</p>
